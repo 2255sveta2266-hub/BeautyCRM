@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <!-- viewport нужен, чтобы сайт нормально выглядел на телефоне -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeautyCRM | Панель управления</title>
+
+    <!-- шрифты: Playfair Display для заголовков, Manrope для текста -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap&subset=cyrillic" rel="stylesheet">
+
+    <!-- подключаем свои стили и скрипт (defer - скрипт запустится, когда страница загрузится) -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- боковое меню -->
+        <aside class="sidebar">
+            <a href="#dashboard" class="logo">BeautyCRM<span>.</span></a>
+            <p class="sidebar-caption">УПРАВЛЕНИЕ САЛОНОМ</p>
+            <!-- ссылки ведут на разделы страницы по id -->
+            <nav class="navigation" aria-label="Основная навигация">
+                <a href="#dashboard" class="nav-link active"><span class="nav-icon">⌂</span>Главная</a>
+                <a href="#appointments" class="nav-link"><span class="nav-icon">▦</span>Записи</a>
+                <a href="#clients" class="nav-link"><span class="nav-icon">♙</span>Клиенты</a>
+                <a href="#masters" class="nav-link"><span class="nav-icon">✂</span>Мастера</a>
+                <a href="#services" class="nav-link"><span class="nav-icon">◇</span>Услуги</a>
+                <a href="#finances" class="nav-link"><span class="nav-icon">₽</span>Финансы</a>
+                <a href="#analytics" class="nav-link"><span class="nav-icon">▥</span>Аналитика</a>
+            </nav>
+        </aside>
+
+        <!-- основная часть -->
+        <main class="main-content" id="dashboard">
+
+            <!-- шапка: дата, заголовок, поиск и профиль -->
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow" id="todayLabel">РАБОЧЕЕ ПРОСТРАНСТВО</p>
+                    <h1>Панель управления</h1>
+                </div>
+                <div class="topbar-actions">
+                    <!-- поиск сверху, js фильтрует списки, пока человек печатает -->
+                    <label class="search-box">
+                        <span aria-hidden="true">⌕</span>
+                        <input id="globalSearch" type="search" placeholder="Поиск по клиентам, услугам..." aria-label="Поиск по клиентам, услугам и записям">
+                    </label>
+                    <div class="profile">
+                        <span class="profile-avatar">А</span>
+                        <span class="profile-name">Администратор</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- приветствие (текст меняет js) -->
+            <section class="welcome-section">
+                <div class="welcome-copy">
+                    <h2>Добро пожаловать!</h2>
+                    <p id="welcomeSummary">Начни с первой записи, клиента или услуги.</p>
+                </div>
+            </section>
+
+            <!-- карточки с цифрами -->
+            <section class="stats-section" aria-label="Основные показатели">
+                <article class="stat-card">
+                    <div class="stat-top"><span>Клиенты</span><span class="stat-icon">♙</span></div>
+                    <h2 id="clientsCount">0</h2><p class="stat-note">Клиентская база</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-top"><span>Записи на сегодня</span><span class="stat-icon">▦</span></div>
+                    <h2 id="appointmentsCount">0</h2><p class="stat-note">Запланированные визиты</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-top"><span>Мастера</span><span class="stat-icon">✂</span></div>
+                    <h2 id="mastersCount">0</h2><p class="stat-note">В команде салона</p>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-top"><span>Услуги</span><span class="stat-icon">◇</span></div>
+                    <h2 id="servicesCount">0</h2><p class="stat-note">В каталоге</p>
+                </article>
+            </section>
+
+            <div class="dashboard-grid">
+
+                <!-- таблица записей -->
+                <section class="panel appointments-section" id="appointments">
+                    <div class="section-heading">
+                        <div>
+                            <p class="section-kicker">РАСПИСАНИЕ</p>
+                            <h2>Записи</h2>
+                            <p>Нажми на статус, чтобы изменить его</p>
+                        </div>
+                        <button type="button" class="button button-primary" id="newAppointment">+ Новая запись</button>
+                    </div>
+
+                    <!-- фильтры по статусу и сортировка -->
+                    <div class="toolbar">
+                        <div class="chips" id="statusFilters" role="group" aria-label="Фильтр по статусу">
+                            <button type="button" class="chip active" data-status="all" aria-pressed="true">Все</button>
+                            <button type="button" class="chip" data-status="Подтверждена" aria-pressed="false">Подтверждены</button>
+                            <button type="button" class="chip" data-status="Ожидает" aria-pressed="false">Ожидают</button>
+                            <button type="button" class="chip" data-status="Завершена" aria-pressed="false">Завершены</button>
+                            <button type="button" class="chip" data-status="Отменена" aria-pressed="false">Отменены</button>
+                        </div>
+                        <label class="sort-box">
+                            <span>Сортировка</span>
+                            <select id="sortSelect">
+                                <option value="asc">Сначала ранние</option>
+                                <option value="desc">Сначала поздние</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <!-- строки таблицы добавляет js -->
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>Дата и время</th><th>Клиент</th><th>Услуга</th><th>Мастер</th><th>Статус</th><th>Действия</th></tr>
+                            </thead>
+                            <tbody id="appointmentsList"></tbody>
+                        </table>
+                    </div>
+                    <p class="empty-state" id="emptyAppointments">Записей пока нет.</p>
+                </section>
+
+                <!-- справа календарь и итоги дня -->
+                <aside class="right-column">
+                    <section class="panel calendar-panel" aria-label="Календарь записей">
+                        <div class="calendar-heading">
+                            <div><p class="section-kicker">ПЛАНИРОВАНИЕ</p><h2 id="calendarMonth">Календарь</h2></div>
+                            <div class="calendar-controls">
+                                <button type="button" id="prevMonth" aria-label="Предыдущий месяц">‹</button>
+                                <button type="button" id="nextMonth" aria-label="Следующий месяц">›</button>
+                            </div>
+                        </div>
+                        <div class="calendar-weekdays" aria-hidden="true">
+                            <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+                        </div>
+                        <!-- дни календаря создаёт js -->
+                        <div class="calendar-days" id="calendarDays"></div>
+                        <div class="calendar-legend"><span></span> Есть записи</div>
+                    </section>
+
+                    <section class="panel today-panel">
+                        <p class="section-kicker">КОРОТКО О ГЛАВНОМ</p>
+                        <h2 id="selectedDateLabel">Выбранный день</h2>
+                        <div class="today-line"><span class="mini-icon">▦</span><span id="dayAppointments">0 записей</span></div>
+                        <div class="today-line"><span class="mini-icon">♙</span><span id="dayClients">0 клиентов</span></div>
+                        <ul class="day-list" id="dayList"></ul>
+                        <button type="button" class="button button-soft button-wide" id="addFromCalendar">Записать клиента</button>
+                    </section>
+                </aside>
+            </div>
+
+            <!-- клиенты -->
+            <section class="panel extra-section" id="clients">
+                <div class="section-heading">
+                    <div><p class="section-kicker">КЛИЕНТСКАЯ БАЗА</p><h2>Клиенты</h2><p>Звёздочка отмечает VIP-клиентов — они всегда сверху</p></div>
+                    <button type="button" class="button button-primary" id="clientsButton">+ Добавить клиента</button>
+                </div>
+                <!-- карточки клиентов добавляет js -->
+                <div class="data-list" id="clientsList"></div>
+                <p class="empty-state" id="emptyClients">Клиентская база пока пуста.</p>
+            </section>
+
+            <!-- мастера -->
+            <section class="panel extra-section" id="masters">
+                <div class="section-heading">
+                    <div><p class="section-kicker">КОМАНДА</p><h2>Мастера</h2><p>Сотрудники салона и их специализация</p></div>
+                    <button type="button" class="button button-primary" id="mastersButton">+ Добавить мастера</button>
+                </div>
+                <!-- карточки мастеров добавляет js -->
+                <div class="data-list" id="mastersList"></div>
+                <p class="empty-state" id="emptyMasters">Список мастеров пока пуст.</p>
+            </section>
+
+            <!-- услуги -->
+            <section class="panel extra-section" id="services">
+                <div class="section-heading">
+                    <div><p class="section-kicker">КАТАЛОГ</p><h2>Услуги</h2><p>Название процедуры, стоимость и длительность</p></div>
+                    <button type="button" class="button button-primary" id="servicesButton">+ Добавить услугу</button>
+                </div>
+                <!-- карточки услуг добавляет js -->
+                <div class="data-list" id="servicesList"></div>
+                <p class="empty-state" id="emptyServices">Каталог пока пуст.</p>
+            </section>
+
+            <!-- финансы -->
+            <section class="panel extra-section" id="finances">
+                <div class="section-heading">
+                    <div><p class="section-kicker">ФИНАНСЫ</p><h2>Финансы</h2><p>Расчёт идёт по стоимости услуг в записях</p></div>
+                </div>
+                <div class="analytics-grid">
+                    <article class="analytics-item"><span>Выручка (завершённые)</span><strong id="financeRevenue">0 ₽</strong></article>
+                    <article class="analytics-item"><span>Ожидаемая выручка</span><strong id="financePlanned">0 ₽</strong></article>
+                    <article class="analytics-item"><span>Средний чек</span><strong id="financeAverage">0 ₽</strong></article>
+                </div>
+            </section>
+
+            <!-- аналитика -->
+            <section class="panel extra-section" id="analytics">
+                <div class="section-heading">
+                    <div><p class="section-kicker">ПОКАЗАТЕЛИ</p><h2>Аналитика</h2><p>Сводка по текущим данным</p></div>
+                </div>
+                <div class="analytics-grid">
+                    <article class="analytics-item"><span>Всего записей</span><strong id="allAppointmentsCount">0</strong></article>
+                    <article class="analytics-item"><span>Клиенты</span><strong id="analyticsClientsCount">0</strong></article>
+                    <article class="analytics-item"><span>Услуги</span><strong id="analyticsServicesCount">0</strong></article>
+                </div>
+                <h3 class="subheading">Популярные услуги</h3>
+                <!-- круговая диаграмма и список услуг, заполняет js -->
+                <div class="pie-block">
+                    <div class="pie hidden" id="popularPie" role="img" aria-label="Круговая диаграмма популярных услуг"></div>
+                    <ul class="pie-legend" id="popularServices"></ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- быстрый доступ -->
+    <nav class="quick-dock" aria-label="Быстрый доступ">
+        <span class="quick-dock-title">Быстрый доступ</span>
+        <button type="button" class="dock-action" id="dockAppointment"><span class="dock-icon">+</span><span>Новая запись</span></button>
+        <button type="button" class="dock-action" id="dockClient"><span class="dock-icon">♙</span><span>Добавить клиента</span></button>
+        <button type="button" class="dock-action" id="dockService"><span class="dock-icon">◇</span><span>Добавить услугу</span></button>
+        <a class="dock-action" href="#analytics"><span class="dock-icon">▥</span><span>Аналитика</span></a>
+    </nav>
+
+    <!-- модальное окно, в нём форма или подробности -->
+    <div class="modal-backdrop hidden" id="modalBackdrop">
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-heading">
+                <div><p class="section-kicker" id="modalKicker">НОВАЯ КАРТОЧКА</p><h2 id="modalTitle">Добавить данные</h2></div>
+                <button type="button" class="modal-close" id="closeModal" aria-label="Закрыть окно">×</button>
+            </div>
+            <!-- поля формы для записи, клиента, услуги и мастера рисует js -->
+            <form id="entryForm" class="crm-form"></form>
+            <p id="formMessage" class="form-message" aria-live="polite"></p>
+            <!-- сюда js вставляет подробности -->
+            <div id="detailsBox" class="hidden"></div>
+        </section>
+    </div>
+
+    <!-- уведомление, показывается из js -->
+    <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
