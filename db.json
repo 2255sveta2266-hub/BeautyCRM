@@ -1,0 +1,38 @@
+{
+  "clients": [
+    {
+      "name": "Светлана Гончаренко",
+      "phone": "79648286939",
+      "email": "aaaza@gmail.com",
+      "isVip": false,
+      "id": 1
+    }
+  ],
+  "masters": [
+    {
+      "name": "Светлана пупкина",
+      "specialization": "мастер педекюра",
+      "id": 1
+    }
+  ],
+  "services": [
+    {
+      "name": "педикюр",
+      "price": 1600,
+      "duration": 60,
+      "id": 1
+    }
+  ],
+  "appointments": [
+    {
+      "clientId": 1,
+      "masterId": 1,
+      "serviceId": 1,
+      "date": "2026-11-20",
+      "time": "18:00",
+      "status": "pending",
+      "comment": "красный лак",
+      "id": 1
+    }
+  ]
+}
