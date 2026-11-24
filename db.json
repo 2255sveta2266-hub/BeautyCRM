@@ -33,6 +33,16 @@
       "status": "pending",
       "comment": "красный лак",
       "id": 1
+    },
+    {
+      "clientId": 1,
+      "masterId": 1,
+      "serviceId": 1,
+      "date": "2026-12-08",
+      "time": "14:00",
+      "status": "pending",
+      "comment": "",
+      "id": 2
     }
   ]
 }

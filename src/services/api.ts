@@ -1,11 +1,11 @@
 import type { Client, Master, Service, Appointment } from "../types";
-// адрес локального json-server, он запускается отдельной командой
-const BASE = "http://localhost:3001";
+// адрес api можно поменять через переменную VITE_API_URL, по умолчанию локальный json-server
+const BASE: string = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 // общая функция для http-запросов, чтобы не повторять fetch в каждом разделе
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try { response = await fetch(BASE + path, { ...init, headers: { "Content-Type": "application/json", ...init?.headers } }); }
-  catch { throw new Error("Нет соединения с API. Запусти npm.cmd run api."); }
+  catch { throw new Error("Нет соединения с API. Проверь, что json-server запущен (npm run api)."); }
   if (!response.ok) throw new Error(`Ошибка API: ${response.status}`);
   if (response.status === 204) return undefined as T;
   const raw = await response.text();

@@ -135,7 +135,7 @@ function Layout() {
 // маршруты нужны для главной страницы, списка и отдельной карточки клиента
 export default function App() {
   return (
-    <BrowserRouter basename={import.meta.env.PROD ? "/BeautyCRM" : "/"}>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
       <CRMProvider>
         <Routes>
           <Route element={<Layout />}>

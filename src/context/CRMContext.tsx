@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import type { Appointment, Client, EntityKind, Master, Service } from "../types";
+import type { Appointment, Client, EntityKind, EntityValues, Master, Service } from "../types";
 import { appointmentsApi, clientsApi, mastersApi, servicesApi } from "../services/api";
 
 // здесь хранится, какую карточку сейчас добавляем или редактируем
@@ -10,7 +10,7 @@ type CRMContextType = {
   loading: boolean; error: string; notice: string; editing: Editing;
   refresh: () => Promise<void>; openForm: (kind: EntityKind, id?: number) => void;
   closeForm: () => void; clearError: () => void; clearNotice: () => void;
-  save: (kind: EntityKind, values: Record<string, unknown>, id?: number) => Promise<void>;
+  save: <K extends EntityKind>(kind: K, values: Partial<EntityValues[K]>, id?: number) => Promise<void>;
   remove: (kind: EntityKind, id: number) => Promise<void>;
 };
 // общий контекст, чтобы не передавать одни и те же данные через все компоненты
@@ -37,18 +37,18 @@ export function CRMProvider({ children }: { children: ReactNode }) {
   const openForm = (kind: EntityKind, id?: number) => { setError(""); setEditing({kind, id}); };
   const closeForm = () => setEditing(null);
   // в зависимости от типа формы отправляем данные в нужный раздел api
-  const save = async (kind: EntityKind, values: Record<string, unknown>, id?: number) => {
+  const save = async (kind: EntityKind, values: Partial<EntityValues[EntityKind]>, id?: number) => {
     if (kind === "client") {
-      const data = values as unknown as Omit<Client, "id">;
+      const data = values as EntityValues["client"];
       if (id === undefined) await clientsApi.create(data); else await clientsApi.update(id, data);
     } else if (kind === "master") {
-      const data = values as unknown as Omit<Master, "id">;
+      const data = values as EntityValues["master"];
       if (id === undefined) await mastersApi.create(data); else await mastersApi.update(id, data);
     } else if (kind === "service") {
-      const data = values as unknown as Omit<Service, "id">;
+      const data = values as EntityValues["service"];
       if (id === undefined) await servicesApi.create(data); else await servicesApi.update(id, data);
     } else {
-      const data = values as unknown as Omit<Appointment, "id">;
+      const data = values as EntityValues["appointment"];
       if (id === undefined) await appointmentsApi.create(data); else await appointmentsApi.update(id, data);
     }
     setEditing(null); await refresh(); setNotice(id === undefined ? "Данные добавлены." : "Изменения сохранены.");

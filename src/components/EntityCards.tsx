@@ -1,14 +1,87 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useCRM } from "../context/CRMContext";
-import type { EntityKind } from "../types";
-// карточки для списков клиентов, мастеров и услуг
-export function EntityCards({kind, search = ""}: {kind: Exclude<EntityKind, "appointment">; search?: string}) {
-  const crm = useCRM(); const [error,setError] = useState("");
-  // выбираем нужный список из общего хранилища
-  const list = kind === "client" ? crm.clients : kind === "master" ? crm.masters : crm.services;
-  const filtered = list.filter(item => Object.values(item).join(" ").toLowerCase().includes(search.toLowerCase()));
+import { ClientCard } from "./cards/ClientCard";
+import { MasterCard } from "./cards/MasterCard";
+import { ServiceCard } from "./cards/ServiceCard";
+import type { Client, EntityKind } from "../types";
+
+interface EntityCardsProps {
+  kind: Exclude<EntityKind, "appointment">;
+  search?: string;
+}
+
+// тексты для пустого списка в каждом разделе
+const emptyTexts = {
+  client: "Клиентская база пока пуста.",
+  master: "Мастера пока не добавлены.",
+  service: "Каталог услуг пока пуст.",
+};
+
+// список карточек клиентов, мастеров или услуг
+export function EntityCards({ kind, search = "" }: EntityCardsProps) {
+  const crm = useCRM();
+  const [error, setError] = useState("");
+
+  // поиск по всем полям объекта сразу
+  const query = search.toLowerCase();
+  const match = (item: object) => Object.values(item).join(" ").toLowerCase().includes(query);
+
+  const clients = crm.clients.filter(match);
+  const masters = crm.masters.filter(match);
+  const services = crm.services.filter(match);
+  const count = kind === "client" ? clients.length : kind === "master" ? masters.length : services.length;
+
   // перед удалением спрашиваем подтверждение
-  async function remove(id:number,name:string) { if (!window.confirm(`Удалить «${name}»?`)) return; setError(""); try { await crm.remove(kind,id); } catch(e) { setError(e instanceof Error ? e.message : "Не удалось удалить."); } }
-  return <>{error && <p className="form-message" role="alert">{error}</p>}{filtered.length === 0 ? <p className="empty-state">{search ? "Ничего не найдено." : kind === "client" ? "Клиентская база пока пуста." : kind === "master" ? "Мастера пока не добавлены." : "Каталог услуг пока пуст."}</p> : <div className="data-list">{filtered.map(item => <article className="data-card" key={item.id}><div className="card-top"><h3>{item.name}</h3>{"isVip" in item && <button className={`star ${item.isVip ? "active" : ""}`} type="button" title="Переключить VIP" onClick={async()=>{try { await crm.save("client",{isVip:!item.isVip},item.id); }catch(e){setError(e instanceof Error?e.message:"Ошибка.");}}}>★</button>}</div>{"phone" in item && <><p>Телефон: {item.phone}</p><p>Email: {item.email || "не указан"}</p></>}{"specialization" in item && <p>{item.specialization}</p>}{"price" in item && <><p className="price">{item.price.toLocaleString("ru-RU")} ₽</p><p>Длительность: {item.duration} мин.</p></>}<div className="card-actions">{kind === "client" && <Link className="link-button" to={`/clients/${item.id}`}>Подробнее</Link>}<button className="link-button" type="button" onClick={()=>crm.openForm(kind,item.id)}>Изменить</button><button className="link-button danger" type="button" onClick={()=>void remove(item.id,item.name)}>Удалить</button></div></article>)}</div>}</>;
+  async function remove(id: number, name: string) {
+    if (!window.confirm(`Удалить «${name}»?`)) return;
+    setError("");
+    try {
+      await crm.remove(kind, id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось удалить.");
+    }
+  }
+
+  // звезда меняет только поле isVip
+  async function toggleVip(client: Client) {
+    try {
+      await crm.save("client", { isVip: !client.isVip }, client.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка.");
+    }
+  }
+
+  return (
+    <>
+      {error && (
+        <p className="form-message" role="alert">
+          {error}
+        </p>
+      )}
+      {count === 0 ? (
+        <p className="empty-state">{search ? "Ничего не найдено." : emptyTexts[kind]}</p>
+      ) : (
+        <div className="data-list">
+          {kind === "client" &&
+            clients.map((c) => (
+              <ClientCard
+                key={c.id}
+                client={c}
+                onEdit={() => crm.openForm("client", c.id)}
+                onDelete={() => void remove(c.id, c.name)}
+                onToggleVip={() => void toggleVip(c)}
+              />
+            ))}
+          {kind === "master" &&
+            masters.map((m) => (
+              <MasterCard key={m.id} master={m} onEdit={() => crm.openForm("master", m.id)} onDelete={() => void remove(m.id, m.name)} />
+            ))}
+          {kind === "service" &&
+            services.map((s) => (
+              <ServiceCard key={s.id} service={s} onEdit={() => crm.openForm("service", s.id)} onDelete={() => void remove(s.id, s.name)} />
+            ))}
+        </div>
+      )}
+    </>
+  );
 }

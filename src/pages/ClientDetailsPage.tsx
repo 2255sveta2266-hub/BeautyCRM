@@ -15,7 +15,13 @@ export default function ClientDetailsPage() {
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
 
+  // при смене клиента или повторе снова показываем загрузку
+  useEffect(() => {
+    setLoading(true);
+  }, [id, retry]);
+
   // получаем одного клиента непосредственно через REST API
+  // после правки списка клиент перезагружается тихо, без мигания загрузки
   useEffect(() => {
     let cancelled = false;
 
@@ -29,7 +35,6 @@ export default function ClientDetailsPage() {
         return;
       }
 
-      setLoading(true);
       setError("");
 
       try {

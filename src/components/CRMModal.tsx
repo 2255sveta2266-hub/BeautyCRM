@@ -317,8 +317,6 @@ export function CRMModal() {
     setSaving(true);
 
     try {
-      let values: Record<string, unknown>;
-
       if (kind === "client") {
         const name = String(form.name ?? "").trim();
         const phone = String(form.phone ?? "").trim();
@@ -327,12 +325,17 @@ export function CRMModal() {
           throw new Error("Укажи имя и корректный телефон.");
         }
 
-        values = {
-          name,
-          phone,
-          email: String(form.email ?? "").trim(),
-          isVip: Boolean(form.isVip),
-        };
+        // сразу отправляем данные клиента в нужный раздел api
+        await crm.save(
+          "client",
+          {
+            name,
+            phone,
+            email: String(form.email ?? "").trim(),
+            isVip: Boolean(form.isVip),
+          },
+          currentEditing.id,
+        );
       } else if (kind === "master") {
         const name = String(form.name ?? "").trim();
         const specialization = String(form.specialization ?? "").trim();
@@ -341,14 +344,15 @@ export function CRMModal() {
           throw new Error("Заполни имя и специализацию.");
         }
 
-        values = {
-          name,
-          specialization,
-        };
+        await crm.save("master", { name, specialization }, currentEditing.id);
       } else if (kind === "service") {
         const price = Number(form.price);
         const duration = Number(form.duration);
         const name = String(form.name ?? "").trim();
+
+        if (!name) {
+          throw new Error("Укажи название услуги.");
+        }
 
         if (
           !Number.isFinite(price) ||
@@ -360,15 +364,7 @@ export function CRMModal() {
           throw new Error("Проверь стоимость и длительность (5–480 минут).");
         }
 
-        values = {
-          name,
-          price,
-          duration,
-        };
-
-        if (!name) {
-          throw new Error("Укажи название услуги.");
-        }
+        await crm.save("service", { name, price, duration }, currentEditing.id);
       } else {
         const clientId = Number(form.clientId);
         const masterId = Number(form.masterId);
@@ -398,18 +394,20 @@ export function CRMModal() {
           throw new Error("У этого мастера уже есть запись на выбранное время.");
         }
 
-        values = {
-          clientId,
-          masterId,
-          serviceId,
-          date,
-          time,
-          status: form.status as AppointmentStatus,
-          comment: String(form.comment ?? "").trim(),
-        };
+        await crm.save(
+          "appointment",
+          {
+            clientId,
+            masterId,
+            serviceId,
+            date,
+            time,
+            status: form.status as AppointmentStatus,
+            comment: String(form.comment ?? "").trim(),
+          },
+          currentEditing.id,
+        );
       }
-
-      await crm.save(kind, values, currentEditing.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка сохранения.");
     } finally {
