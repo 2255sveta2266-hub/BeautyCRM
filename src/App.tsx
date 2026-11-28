@@ -1,9 +1,13 @@
 
-import { useEffect, useState } from "react";
-import { BrowserRouter, Link, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { CRMProvider, useCRM } from "./context/CRMContext";
 import { CRMModal } from "./components/CRMModal";
-import HomePage from "./pages/HomePage";
+import HomePage, { AppointmentsPage } from "./pages/HomePage";
+import { EntityCards } from "./components/EntityCards";
+import { SectionHeading } from "./components/SectionHeading";
+import { FinanceSection } from "./components/FinanceSection";
+import { AnalyticsSection } from "./components/AnalyticsSection";
 import ClientsPage from "./pages/ClientsPage";
 import ClientDetailsPage from "./pages/ClientDetailsPage";
 import type { EntityKind } from "./types";
@@ -11,35 +15,12 @@ import "./App.css";
 
 // общая часть сайта: боковое меню, шапка и панель быстрого доступа
 function Layout() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const crm = useCRM();
-  const [active, setActive] = useState("home");
 
-  // после перехода по пункту меню прокручиваем страницу к нужному разделу
   useEffect(() => {
-    if (location.pathname !== "/") return;
-    const id = location.hash.slice(1) || "home";
-    const jump = () => {
-      document.getElementById(id)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-      setActive(id);
-    };
-    const timer = window.setTimeout(jump, crm.loading ? 150 : 40);
-    return () => window.clearTimeout(timer);
-  }, [location.pathname, location.hash, crm.loading]);
-
-  // эта функция нужна для меню, чтобы не открывать отдельные страницы
-  function go(id: string) {
-    if (location.pathname === "/" && location.hash === `#${id}`) {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      setActive(id);
-    } else {
-      navigate(id === "home" ? "/" : `/#${id}`);
-    }
-  }
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [pathname]);
 
   // открываем одну общую форму, меняется только её содержимое
   function open(kind: EntityKind) {
@@ -47,13 +28,13 @@ function Layout() {
   }
 
   const links = [
-    ["home", "⌂", "Главная"],
-    ["appointments", "▦", "Записи"],
-    ["clients", "♙", "Клиенты"],
-    ["masters", "✂", "Мастера"],
-    ["services", "◇", "Услуги"],
-    ["finances", "▤", "Финансы"],
-    ["analytics", "◷", "Аналитика"]
+    ["/", "⌂", "Главная"],
+    ["/appointments", "▦", "Записи"],
+    ["/clients", "♙", "Клиенты"],
+    ["/masters", "✂", "Мастера"],
+    ["/services", "◇", "Услуги"],
+    ["/finances", "▤", "Финансы"],
+    ["/analytics", "◷", "Аналитика"]
   ];
 
   return (
@@ -65,16 +46,11 @@ function Layout() {
         <p className="sidebar-caption">УПРАВЛЕНИЕ САЛОНОМ</p>
 
         <nav className="navigation">
-          {links.map(([id, icon, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`nav-link ${location.pathname === "/" && active === id ? "active" : ""}`}
-              onClick={() => go(id)}
-            >
+          {links.map(([path, icon, label]) => (
+            <NavLink key={path} to={path} className="nav-link">
               <span className="nav-icon">{icon}</span>
               {label}
-            </button>
+            </NavLink>
           ))}
         </nav>
       </aside>
@@ -110,10 +86,10 @@ function Layout() {
           <span className="dock-icon">◇</span>
           <span>Добавить услугу</span>
         </button>
-        <button type="button" className="dock-action" onClick={() => go("analytics")}>
+        <Link className="dock-action" to="/analytics">
           <span className="dock-icon">▥</span>
           <span>Аналитика</span>
-        </button>
+        </Link>
       </nav>
 
       {crm.notice && (
@@ -132,19 +108,57 @@ function Layout() {
   );
 }
 
-// маршруты нужны для главной страницы, списка и отдельной карточки клиента
+function CRMDataLayout() {
+  const crm = useCRM();
+
+  if (crm.loading) {
+    return <section className="panel extra-section"><p className="empty-state">Загружаем данные...</p></section>;
+  }
+
+  if (crm.error) {
+    return (
+      <section className="panel extra-section">
+        <p className="form-message" role="alert">{crm.error}</p>
+        <button className="button button-primary" onClick={() => void crm.refresh()}>Повторить</button>
+      </section>
+    );
+  }
+
+  return <Outlet />;
+}
+
+function CatalogPage({ kind }: { kind: "master" | "service" }) {
+  const heading = kind === "master"
+    ? { kicker: "КОМАНДА", title: "Мастера", subtitle: "Сотрудники салона" }
+    : { kicker: "КАТАЛОГ", title: "Услуги", subtitle: "Каталог услуг салона" };
+
+  return (
+    <section className="panel extra-section">
+      <SectionHeading {...heading} kind={kind} />
+      <EntityCards kind={kind} />
+    </section>
+  );
+}
+
 export default function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+    <HashRouter>
       <CRMProvider>
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/" element={<HomePage />} />
+            <Route element={<CRMDataLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/appointments" element={<AppointmentsPage />} />
+              <Route path="/masters" element={<CatalogPage kind="master" />} />
+              <Route path="/services" element={<CatalogPage kind="service" />} />
+              <Route path="/finances" element={<FinanceSection />} />
+              <Route path="/analytics" element={<AnalyticsSection />} />
+            </Route>
             <Route path="/clients" element={<ClientsPage />} />
             <Route path="/clients/:id" element={<ClientDetailsPage />} />
           </Route>
         </Routes>
       </CRMProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

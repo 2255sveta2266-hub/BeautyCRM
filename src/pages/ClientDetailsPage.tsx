@@ -93,7 +93,7 @@ export default function ClientDetailsPage() {
 
           <Link
             className="button button-outline"
-            to="/#clients"
+            to="/clients"
           >
             К списку клиентов
           </Link>
@@ -158,7 +158,7 @@ export default function ClientDetailsPage() {
       )}
 
       <p style={{ marginTop: 20 }}>
-        <Link className="button button-outline" to="/#clients">
+        <Link className="button button-outline" to="/clients">
           ← Назад к клиентам
         </Link>
       </p>

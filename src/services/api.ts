@@ -1,6 +1,6 @@
 import type { Client, Master, Service, Appointment } from "../types";
 // адрес api можно поменять через переменную VITE_API_URL, по умолчанию локальный json-server
-const BASE: string = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+const BASE: string = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 // общая функция для http-запросов, чтобы не повторять fetch в каждом разделе
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
